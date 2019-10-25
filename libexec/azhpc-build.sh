@@ -129,7 +129,7 @@ done
 for peer_name in $(jq -r ".vnet.peer | keys | @tsv" $config_file); do
     status "setting up network peering for $peer_name"
     read_value peer_vnet_name ".vnet.peer.$peer_name.vnet_name"
-    read_value peer_vnet_resource_group ".vnet.peer.$peer_name.vnet_resource_group"
+    read_value peer_vnet_resource_group ".vnet.peer.$peer_name.resource_group"
 
     # Get vnet ids
     id_1=`az network vnet list -g $vnet_resource_group --query [].id --output tsv`
