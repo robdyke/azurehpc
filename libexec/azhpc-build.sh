@@ -149,6 +149,7 @@ for peer_name in $(jq -r ".vnet.peer | keys | @tsv" $config_file); do
             --vnet-name $vnet_name \
             --remote-vnet $id_2 \
             --allow-vnet-access
+    fi
 
     az network vnet peering show \
         -g $peer_vnet_resource_group \
@@ -164,6 +165,7 @@ for peer_name in $(jq -r ".vnet.peer | keys | @tsv" $config_file); do
             --vnet-name $peer_vnet_name \
             --remote-vnet $id_1 \
             --allow-vnet-access
+    fi
 done
 
 
