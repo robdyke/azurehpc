@@ -132,20 +132,20 @@ for peer_name in $(jq -r ".vnet.peer | keys | @tsv" $config_file); do
     read_value peer_vnet_resource_group ".vnet.peer.$peer_name.resource_group"
 
     # Get vnet ids
-    id_1=`az network vnet list -g $vnet_resource_group --query [].id --output tsv`
-    id_2=`az network vnet list -g $peer_vnet_resource_group --query [].id --output tsv`
+    id_1=`az network vnet list -g $vnet_resource_group --query [].id --output tsv | grep $vnet_name`
+    id_2=`az network vnet list -g $peer_vnet_resource_group --query [].id --output tsv | grep $peer_vnet_name`
 
     az network vnet peering show \
         -g $vnet_resource_group \
-        -n ${vnet_name}-2-${peer_vnet_name} \
+        -n rg-{$vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
         --vnet-name $vnet_name \
 
     if [ "$?" = "0" ]; then
-        status "${vnet_name}-2-${peer_vnet_name} already exists"
+        status "rg-{$vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} already exists"
     else
         az network vnet peering create \
             -g $vnet_resource_group \
-            -n ${vnet_name}-2-${peer_vnet_name} \
+            -n rg-{$vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
             --vnet-name $vnet_name \
             --remote-vnet $id_2 \
             --allow-vnet-access
@@ -153,15 +153,15 @@ for peer_name in $(jq -r ".vnet.peer | keys | @tsv" $config_file); do
 
     az network vnet peering show \
         -g $peer_vnet_resource_group \
-        -n ${peer_vnet_name}-2-${vnet_name} \
+        -n rg-{$vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
         --vnet-name $peer_vnet_name \
 
     if [ "$?" = "0" ]; then
-        status "${peer_vnet_name}-2-${vnet_name} already exists"
+        status "rg-{$vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} already exists"
     else
         az network vnet peering create \
             -g $peer_vnet_resource_group \
-            -n ${peer_vnet_name}-2-${vnet_name} \
+            -n rg-{$vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
             --vnet-name $peer_vnet_name \
             --remote-vnet $id_1 \
             --allow-vnet-access
