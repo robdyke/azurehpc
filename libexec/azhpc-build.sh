@@ -137,15 +137,15 @@ for peer_name in $(jq -r ".vnet.peer | keys | @tsv" $config_file); do
 
     az network vnet peering show \
         -g $vnet_resource_group \
-        -n rg-{$vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
+        -n rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
         --vnet-name $vnet_name \
 
     if [ "$?" = "0" ]; then
-        status "rg-{$vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} already exists"
+        status "rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} already exists"
     else
         az network vnet peering create \
             -g $vnet_resource_group \
-            -n rg-{$vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
+            -n rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
             --vnet-name $vnet_name \
             --remote-vnet $id_2 \
             --allow-vnet-access
@@ -153,15 +153,15 @@ for peer_name in $(jq -r ".vnet.peer | keys | @tsv" $config_file); do
 
     az network vnet peering show \
         -g $peer_vnet_resource_group \
-        -n rg-{$vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
+        -n rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
         --vnet-name $peer_vnet_name \
 
     if [ "$?" = "0" ]; then
-        status "rg-{$vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} already exists"
+        status "rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} already exists"
     else
         az network vnet peering create \
             -g $peer_vnet_resource_group \
-            -n rg-{$vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
+            -n rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
             --vnet-name $peer_vnet_name \
             --remote-vnet $id_1 \
             --allow-vnet-access
