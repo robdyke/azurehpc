@@ -131,6 +131,12 @@ for peer_name in $(jq -r ".vnet.peer | keys | @tsv" $config_file); do
     read_value peer_vnet_name ".vnet.peer.$peer_name.vnet_name"
     read_value peer_vnet_resource_group ".vnet.peer.$peer_name.resource_group"
 
+    if [[ "$peer_vnet_name" = ""] || [ "$peer_vnet_resource_group" = ""]]; then
+        echo "One or more of the variables are not correctly"
+        echo "Name: $peer_vnet_name, RG: $peer_vnet_resource_group"
+        continue
+    fi
+
     # Get vnet ids
     id_1=`az network vnet list -g $vnet_resource_group --query [].id --output tsv | grep $vnet_name`
     id_2=`az network vnet list -g $peer_vnet_resource_group --query [].id --output tsv | grep $peer_vnet_name`
