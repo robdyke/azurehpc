@@ -1,22 +1,20 @@
 #!/bin/bash
 
-APP_INSTALL_DIR=/apps
-
-cd $PBS_O_WORKDIR
-
 # parameters that can be overridden
 APP_INSTALL_DIR=${APP_INSTALL_DIR:-/apps}
 DATA_DIR=${DATA_DIR:-/data}
 MODEL=${MODEL:-sedan_4m}
 OMPI=${OMPI:-openmpi}
-FLUENT_VERSION=${FLUENT_VERSION:-v193}
+FLUENT_VERSION=${FLUENT_VERSION:-v194}
 LIC_SRV=${LIC_SRV:-localhost}
 
 export ANSYSLMD_LICENSE_FILE=1055@${LIC_SRV}
 export ANSYSLI_SERVERS=2325@${LIC_SRV}
 export FLUENT_HOSTNAME=`hostname`
 export APPLICATION=fluent
-export VERSION=v193
+export VERSION=$FLUENT_VERSION
+
+cd $PBS_O_WORKDIR
 
 CORES=`cat $PBS_NODEFILE | wc -l`
 NODES=`cat $PBS_NODEFILE | sort | uniq | wc -l`
@@ -34,10 +32,9 @@ module load hpcx
 
 export PATH=$APP_INSTALL_DIR/ansys_inc/${FLUENT_VERSION}/fluent/bin:$PATH
 export FLUENT_PATH=$APP_INSTALL_DIR/ansys_inc/${FLUENT_VERSION}/fluent
-
 export OPENMPI_ROOT=$HPCX_MPI_DIR
-RUNDIR=$PWD
 
+RUNDIR=$PWD
 rm -f $RUNDIR/lib*.so*
 ln -s $MPI_HOME/lib/libmpi.so $RUNDIR/libmpi.so.1
 ln -s $MPI_HOME/lib/libopen-pal.so $RUNDIR/libopen-pal.so.4
