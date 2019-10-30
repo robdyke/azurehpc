@@ -132,7 +132,7 @@ for peer_name in $(jq -r ".vnet.peer | keys | @tsv" $config_file); do
     read_value peer_vnet_resource_group ".vnet.peer.$peer_name.resource_group"
 
     echo "Name: $peer_vnet_name, RG: $peer_vnet_resource_group"
-    if [[ "$peer_vnet_name" = "" ] || [ "$peer_vnet_resource_group" = "" ]]
+    if [[ "$peer_vnet_name" = "" ]] || [[ "$peer_vnet_resource_group" = "" ]]
     then
         echo "One or more of the variables are not correctly"
         echo "Name: $peer_vnet_name, RG: $peer_vnet_resource_group"
