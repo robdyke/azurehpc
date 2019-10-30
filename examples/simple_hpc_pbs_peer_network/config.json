@@ -22,8 +22,8 @@
         },
         "peer": {
             "Network1": {
-                "vnet_name": "variables.peer_network_resource_group",
-                "resource_group": "variables.peer_vnet_name"
+                "resource_group": "variables.peer_network_resource_group",
+                "vnet_name": "variables.peer_vnet_name"
             }
         }
     },
