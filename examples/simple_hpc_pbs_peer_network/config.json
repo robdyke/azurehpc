@@ -20,11 +20,11 @@
         "subnets": {
             "compute": "10.2.4.0/22"
         }
-    },
-    "peer": {
-        "Network1": {
-          "vnet_name": "variables.peer_network_resource_group",
-          "resource_group": "variables.peer_vnet_name"
+        "peer": {
+            "Network1": {
+                "vnet_name": "variables.peer_network_resource_group",
+                "resource_group": "variables.peer_vnet_name"
+            }
         }
     },
     "resources": {
