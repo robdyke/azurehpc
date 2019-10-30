@@ -19,7 +19,7 @@
         "address_prefix": "10.2.0.0/20",
         "subnets": {
             "compute": "10.2.4.0/22"
-        }
+        },
         "peer": {
             "Network1": {
                 "vnet_name": "variables.peer_network_resource_group",
