@@ -130,59 +130,59 @@ for subnet_name in $(jq -r ".vnet.subnets | keys | @tsv" $config_file); do
         continue
     fi
     for peer_name in $(jq -r ".vnet.peer | keys | @tsv" $config_file); do
-	status "setting up network peering for $peer_name"
-	read_value peer_vnet_name ".vnet.peer.$peer_name.vnet_name"
-	read_value peer_vnet_resource_group ".vnet.peer.$peer_name.resource_group"
+    status "setting up network peering for $peer_name"
+    read_value peer_vnet_name ".vnet.peer.$peer_name.vnet_name"
+    read_value peer_vnet_resource_group ".vnet.peer.$peer_name.resource_group"
 
-	echo "Name: $peer_vnet_name, RG: $peer_vnet_resource_group"
-	if [[ "$peer_vnet_name" = "" ]] || [[ "$peer_vnet_resource_group" = "" ]]
-	then
-	    echo "One or more of the variables are not correctly"
-	    echo "Name: $peer_vnet_name, RG: $peer_vnet_resource_group"
-	    continue
-	fi
+    echo "Name: $peer_vnet_name, RG: $peer_vnet_resource_group"
+    if [[ "$peer_vnet_name" = "" ]] || [[ "$peer_vnet_resource_group" = "" ]]
+    then
+        echo "One or more of the variables are not correctly"
+        echo "Name: $peer_vnet_name, RG: $peer_vnet_resource_group"
+        continue
+    fi
 
-	# Get vnet ids
-	id_1=`az network vnet list -g $vnet_resource_group --query [].id --output tsv | grep $vnet_name`
-	id_2=`az network vnet list -g $peer_vnet_resource_group --query [].id --output tsv | grep $peer_vnet_name`
+    # Get vnet ids
+    id_1=`az network vnet list -g $vnet_resource_group --query [].id --output tsv | grep $vnet_name`
+    id_2=`az network vnet list -g $peer_vnet_resource_group --query [].id --output tsv | grep $peer_vnet_name`
 
-	status "Checking if rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} for $vnet_name already exists"
-	az network vnet peering show \
-	    -g $vnet_resource_group \
-	    -n rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
-	    --vnet-name $vnet_name \
+    status "Checking if rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} for $vnet_name already exists"
+    az network vnet peering show \
+        -g $vnet_resource_group \
+        -n rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
+        --vnet-name $vnet_name \
 
-	if [ "$?" = "0" ]; then
-	    status "rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} already exists"
-	else
-	    status "Creating vnet peer rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} for $vnet_name"
-	    az network vnet peering create \
-		-g $vnet_resource_group \
-		-n rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
-		--vnet-name $vnet_name \
-		--remote-vnet $id_2 \
-		--allow-forwarded-traffic \
-		--allow-vnet-access
-	fi
+    if [ "$?" = "0" ]; then
+        status "rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} already exists"
+    else
+        status "Creating vnet peer rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} for $vnet_name"
+        az network vnet peering create \
+        -g $vnet_resource_group \
+        -n rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
+        --vnet-name $vnet_name \
+        --remote-vnet $id_2 \
+        --allow-forwarded-traffic \
+        --allow-vnet-access
+    fi
 
-	status "Checking if rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} for $peer_vnet_name already exists"
-	az network vnet peering show \
-	    -g $peer_vnet_resource_group \
-	    -n rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
-	    --vnet-name $peer_vnet_name \
+    status "Checking if rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} for $peer_vnet_name already exists"
+    az network vnet peering show \
+        -g $peer_vnet_resource_group \
+        -n rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
+        --vnet-name $peer_vnet_name \
 
-	if [ "$?" = "0" ]; then
-	    status "rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} already exists"
-	else
-	    status "Creating vnet peer rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} for $peer_vnet_name"
-	    az network vnet peering create \
-		-g $peer_vnet_resource_group \
-		-n rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
-		--vnet-name $peer_vnet_name \
-		--remote-vnet $id_1 \
-		--allow-forwarded-traffic \
-		--allow-vnet-access
-	fi
+    if [ "$?" = "0" ]; then
+        status "rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} already exists"
+    else
+        status "Creating vnet peer rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} for $peer_vnet_name"
+        az network vnet peering create \
+        -g $peer_vnet_resource_group \
+        -n rg-${vnet_resource_group}-${vnet_name}-2-${peer_vnet_name} \
+        --vnet-name $peer_vnet_name \
+        --remote-vnet $id_1 \
+        --allow-forwarded-traffic \
+        --allow-vnet-access
+    fi
     done
 done
 
@@ -343,7 +343,6 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
     case $storage_type in
         anf)
             status "creating anf: $storage_name"
-
             read_value storage_subnet ".storage.\"$storage_name\".subnet"
             storage_vnet_id="/subscriptions/$subscription_id/resourceGroups/$vnet_resource_group/providers/Microsoft.Network/virtualNetworks/$vnet_name"
 
@@ -357,7 +356,7 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
             )
 
             if [ "$delegation_exists" == "" ]; then
-                debug "creating delegation"
+                status "creating delegation"
                 az network vnet subnet update \
                     --resource-group $vnet_resource_group \
                     --vnet-name $vnet_name \
@@ -366,7 +365,7 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
                     --output table
             fi
 
-            debug "creating netapp account"
+            status "creating netapp account"
             az netappfiles account show \
                 --resource-group $storage_resource_group \
                 --name $storage_name \
@@ -379,15 +378,15 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
                     --account-name $storage_name \
                     --location $location \
                     --output table
-	    fi
+            fi
 
-	    read_value storage_anf_domain ".storage.\"$storage_name\".joindomain" "None"
+            read_value storage_anf_domain ".storage.\"$storage_name\".joindomain" "None"
             if [ ! "$storage_anf_domain" = "None" ]; then
-                debug "netapp account joining domain"
-	        read_value storage_anf_domain_ad ".storage.\"$storage_name\".ad_server"
-	        read_value storage_anf_domain_password ".storage.\"$storage_name\".ad_password"
-	        read_value storage_anf_domain_admin ".storage.\"$storage_name\".ad_admin"
-	        ad_dns=$(az vm list-ip-addresses -g $storage_resource_group -n $storage_anf_domain_ad --query [0].virtualMachine.network.privateIpAddresses --output tsv)
+                status "netapp account joining domain"
+                read_value storage_anf_domain_ad ".storage.\"$storage_name\".ad_server"
+                read_value storage_anf_domain_password ".storage.\"$storage_name\".ad_password"
+                read_value storage_anf_domain_admin ".storage.\"$storage_name\".ad_admin"
+                ad_dns=$(az vm list-ip-addresses -g $storage_resource_group -n $storage_anf_domain_ad --query [0].virtualMachine.network.privateIpAddresses --output tsv)
                 az netappfiles account ad add \
                     --dns $ad_dns \
                     --domain $storage_anf_domain \
@@ -403,16 +402,10 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
             mkdir -p scripts
             status "Building script: $mount_script"
             echo "#!/bin/bash" > $mount_script
-            echo "yum install -y nfs-utils" >> $mount_script
+            echo "yum install -y nfs-utils cifs-utils" >> $mount_script
             for pool_name in $(jq -r ".storage.\"$storage_name\".pools | keys | .[]" $config_file); do
                 read_value pool_size ".storage.\"$storage_name\".pools.\"$pool_name\".size"
                 read_value pool_service_level ".storage.\"$storage_name\".pools.\"$pool_name\".service_level"
-
-                mount_script="scripts/auto_netappfiles_mount.sh"
-                mkdir -p scripts
-                status "Building script: $mount_script"
-                echo "#!/bin/bash" > $mount_script
-                echo "yum install -y nfs-utils cifs-utils" >> $mount_script
 
                 # create pool
                 status "Resource Group: $storage_resource_group"
@@ -442,37 +435,37 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
                     read_value volume_size ".storage.\"$storage_name\".pools.\"$pool_name\".volumes.\"$volume_name\".size"
                     read_value export_type ".storage.\"$storage_name\".pools.\"$pool_name\".volumes.\"$volume_name\".type" nfs
 
-		    if [ "$export_type" == "cifs" ]; then 
-		      echo prepping for cifs
-                      az netappfiles volume create \
-                          --resource-group $storage_resource_group \
-                          --account-name $storage_name \
-                          --location $location \
-                          --service-level $pool_service_level \
-                          --usage-threshold $(($volume_size * (2 ** 10))) \
-                          --file-path ${volume_name} \
-                          --pool-name $pool_name \
-                          --volume-name $volume_name \
-			  --protocol-type CIFS \
- 			  --vnet $vnet_name \
-                          --subnet $storage_subnet \
-                          --output table
+                    if [ "$export_type" == "cifs" ]; then 
+                        echo "prepping for cifs"
+                        az netappfiles volume create \
+                            --resource-group $storage_resource_group \
+                            --account-name $storage_name \
+                            --location $location \
+                            --service-level $pool_service_level \
+                            --usage-threshold $(($volume_size * (2 ** 10))) \
+                            --file-path ${volume_name} \
+                            --pool-name $pool_name \
+                            --volume-name $volume_name \
+                            --protocol-type CIFS \
+                            --vnet $vnet_name \
+                            --subnet $storage_subnet \
+                            --output table
 
-                      volume_ip=$( \
-                          az netappfiles list-mount-targets \
+                        volume_ip=$( \
+                            az netappfiles list-mount-targets \
                             --resource-group $storage_resource_group \
                             --account-name $storage_name \
                             --pool-name $pool_name \
                             --volume-name $volume_name \
                             --query [0].ipAddress \
                             --output tsv \
-                      )
-                      read_value mount_point ".storage.\"$storage_name\".pools.\"$pool_name\".volumes.\"$volume_name\".mount"
-                      echo "mkdir -p $mount_point" >> $mount_script
-                      echo "echo '\\\\$volume_ip\\$volume_name	$mount_point 	cifs	_netdev,username=$storage_anf_domain_admin,password=$storage_anf_domain_password,dir_mode=0755,file_mode=0755,uid=500,gid=500 0 0' >> /etc/fstab" >> $mount_script
-                      echo "chmod 777 $mount_point" >> $mount_script
+                        )
+                        read_value mount_point ".storage.\"$storage_name\".pools.\"$pool_name\".volumes.\"$volume_name\".mount"
+                        echo "mkdir -p $mount_point" >> $mount_script
+                        echo "echo '\\\\$volume_ip\\$volume_name	$mount_point 	cifs	_netdev,username=$storage_anf_domain_admin,password=$storage_anf_domain_password,dir_mode=0755,file_mode=0755,uid=500,gid=500 0 0' >> /etc/fstab" >> $mount_script
+                        echo "chmod 777 $mount_point" >> $mount_script
 
-		    else
+                    else
                         # volume_size should be in GiB
                         az netappfiles volume show \
                             --resource-group $storage_resource_group \
@@ -481,7 +474,7 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
                             --name $volume_name \
                             --output table 2>/dev/null
                         if [ "$?" = "0" ]; then
-                           status "volume $volume_name already exists"
+                            status "volume $volume_name already exists"
                         else
                             status "create volume: $volume_name"
                             az netappfiles volume create \
@@ -495,7 +488,7 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
                                 --volume-name $volume_name \
                                 --vnet $vnet_name \
                                 --subnet $storage_subnet \
-                                --protocol-types NFSv3 NFSv4.1 \
+                                --protocol-types NFSv3 \
                                 --output table
                         fi
                         volume_ip=$( \
@@ -511,11 +504,10 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
                         echo "mkdir -p $mount_point" >> $mount_script
                         echo "echo \"$volume_ip:/$volume_name	$mount_point	nfs bg,rw,hard,noatime,nolock,rsize=65536,wsize=65536,vers=3,tcp,_netdev 0 0\" >> /etc/fstab" >> $mount_script
                         echo "chmod 777 $mount_point" >> $mount_script
-		    fi
+                    fi
                 done
                 echo "mount -a" >> $mount_script
                 chmod 777 $mount_script
-
             done
         ;;
         *)
