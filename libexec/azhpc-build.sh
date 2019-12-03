@@ -437,16 +437,16 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
 
                     # Generate unique name for file-path as required
                     make_uuid_str
-                    file_path=$volume_name$uuid_str
+                    volume_name=$volume_name$uuid_str
+                    status "create volume: $volume_name"
                     if [ "$export_type" == "cifs" ]; then 
-                        echo "prepping for cifs"
                         az netappfiles volume create \
                             --resource-group $storage_resource_group \
                             --account-name $storage_name \
                             --location $location \
                             --service-level $pool_service_level \
                             --usage-threshold $(($volume_size * (2 ** 10))) \
-                            --file-path ${file_path} \
+                            --file-path ${volume_name} \
                             --pool-name $pool_name \
                             --volume-name $volume_name \
                             --protocol-type CIFS \
@@ -479,14 +479,13 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
                         if [ "$?" = "0" ]; then
                             status "volume $volume_name already exists"
                         else
-                            status "create volume: $volume_name"
                             az netappfiles volume create \
                                 --resource-group $storage_resource_group \
                                 --account-name $storage_name \
                                 --location $location \
                                 --service-level $pool_service_level \
                                 --usage-threshold $(($volume_size * (2 ** 10))) \
-                                --file-path ${file_path} \
+                                --file-path ${volume_name} \
                                 --pool-name $pool_name \
                                 --volume-name $volume_name \
                                 --vnet $vnet_name \
