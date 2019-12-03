@@ -435,6 +435,9 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
                     read_value volume_size ".storage.\"$storage_name\".pools.\"$pool_name\".volumes.\"$volume_name\".size"
                     read_value export_type ".storage.\"$storage_name\".pools.\"$pool_name\".volumes.\"$volume_name\".type" nfs
 
+                    # Generate unique name for file-path as required
+                    make_uuid_str
+                    file_path=$volume_name$uuid_str
                     if [ "$export_type" == "cifs" ]; then 
                         echo "prepping for cifs"
                         az netappfiles volume create \
@@ -443,7 +446,7 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
                             --location $location \
                             --service-level $pool_service_level \
                             --usage-threshold $(($volume_size * (2 ** 10))) \
-                            --file-path ${volume_name} \
+                            --file-path ${file_path} \
                             --pool-name $pool_name \
                             --volume-name $volume_name \
                             --protocol-type CIFS \
@@ -483,7 +486,7 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
                                 --location $location \
                                 --service-level $pool_service_level \
                                 --usage-threshold $(($volume_size * (2 ** 10))) \
-                                --file-path ${volume_name} \
+                                --file-path ${file_path} \
                                 --pool-name $pool_name \
                                 --volume-name $volume_name \
                                 --vnet $vnet_name \
