@@ -470,7 +470,7 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
                             --volume-name $volume_name \
                             --vnet $storage_vnet_id \
                             --subnet $storage_subnet \
-                            --protocol-types protocol_types \
+                            --protocol-types $protocol_types \
                             --output table
                     fi
 
