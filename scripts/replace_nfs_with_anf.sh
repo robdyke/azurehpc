@@ -19,12 +19,6 @@ chmod 777 $anf_mount_pt/apps
 chmod 777 $anf_mount_pt/data
 chmod 777 $anf_mount_pt/home
 #
-if [ ! -L /apps ]; then
-    ln -s $anf_mount_pt/apps /apps
-fi
-if [ ! -L /data ]; then
-    ln -s $anf_mount_pt/data /data
-fi
-if [ ! -L /share/home ]; then
-    ln -s $anf_mount_pt/home /share/home
-fi
+ln -s $anf_mount_pt/apps /apps
+ln -s $anf_mount_pt/data /data
+ln -s $anf_mount_pt/home /share/home
