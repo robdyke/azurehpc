@@ -408,9 +408,9 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
                 read_value pool_service_level ".storage.\"$storage_name\".pools.\"$pool_name\".service_level"
 
                 # create pool
-                status "Resource Group: $storage_resource_group"
-                status "Account Name: $storage_name"
-                status "Pool Name: $pool_name"
+                debug "Resource Group: $storage_resource_group"
+                debug "Account Name: $storage_name"
+                debug "Pool Name: $pool_name"
                 az netappfiles pool show \
                     --resource-group $storage_resource_group \
                     --account-name $storage_name \
@@ -434,80 +434,64 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
                 for volume_name in $(jq -r ".storage.\"$storage_name\".pools.\"$pool_name\".volumes | keys | .[]" $config_file); do
                     read_value volume_size ".storage.\"$storage_name\".pools.\"$pool_name\".volumes.\"$volume_name\".size"
                     read_value export_type ".storage.\"$storage_name\".pools.\"$pool_name\".volumes.\"$volume_name\".type" nfs
+                    read_value mount_point ".storage.\"$storage_name\".pools.\"$pool_name\".volumes.\"$volume_name\".mount"
 
                     # Generate unique name for file-path as required
                     make_uuid_str
-                    volume_name=$volume_name$uuid_str
+                    file_path=$volume_name$uuid_str
                     status "create volume: $volume_name"
-                    if [ "$export_type" == "cifs" ]; then 
+                    case $export_type in
+                        nfs)
+                            protocol_types="NFSv3"
+                        ;;
+                        cifs)
+                            protocol_types="CIFS"
+                        ;;
+                    esac
+
+                    # volume_size should be in GiB
+                    az netappfiles volume show \
+                        --resource-group $storage_resource_group \
+                        --account-name $storage_name \
+                        --pool-name $pool_name \
+                        --name $volume_name \
+                        --output table 2>/dev/null
+                    if [ "$?" = "0" ]; then
+                        status "volume $volume_name already exists"
+                    else
                         az netappfiles volume create \
                             --resource-group $storage_resource_group \
                             --account-name $storage_name \
                             --location $location \
                             --service-level $pool_service_level \
                             --usage-threshold $(($volume_size * (2 ** 10))) \
-                            --file-path ${volume_name} \
+                            --file-path $file_path \
                             --pool-name $pool_name \
                             --volume-name $volume_name \
-                            --protocol-type CIFS \
-                            --vnet $vnet_name \
+                            --vnet $storage_vnet_id \
                             --subnet $storage_subnet \
+                            --protocol-types protocol_types \
                             --output table
+                    fi
 
-                        volume_ip=$( \
-                            az netappfiles list-mount-targets \
+                    # Create the mount script
+                    volume_ip=$( \
+                        az netappfiles list-mount-targets \
                             --resource-group $storage_resource_group \
                             --account-name $storage_name \
                             --pool-name $pool_name \
                             --volume-name $volume_name \
                             --query [0].ipAddress \
                             --output tsv \
-                        )
-                        read_value mount_point ".storage.\"$storage_name\".pools.\"$pool_name\".volumes.\"$volume_name\".mount"
-                        echo "mkdir -p $mount_point" >> $mount_script
-                        echo "echo '\\\\$volume_ip\\$volume_name	$mount_point 	cifs	_netdev,username=$storage_anf_domain_admin,password=$storage_anf_domain_password,dir_mode=0755,file_mode=0755,uid=500,gid=500 0 0' >> /etc/fstab" >> $mount_script
-                        echo "chmod 777 $mount_point" >> $mount_script
-
+                    )
+                    echo "mkdir -p $mount_point" >> $mount_script
+                    if [ "$export_type" == "cifs" ]; then 
+                        echo "echo '\\\\$volume_ip\\$file_path	$mount_point 	cifs	_netdev,username=$storage_anf_domain_admin,password=$storage_anf_domain_password,dir_mode=0755,file_mode=0755,uid=500,gid=500 0 0' >> /etc/fstab" >> $mount_script
                     else
-                        # volume_size should be in GiB
-                        az netappfiles volume show \
-                            --resource-group $storage_resource_group \
-                            --account-name $storage_name \
-                            --pool-name $pool_name \
-                            --name $volume_name \
-                            --output table 2>/dev/null
-                        if [ "$?" = "0" ]; then
-                            status "volume $volume_name already exists"
-                        else
-                            az netappfiles volume create \
-                                --resource-group $storage_resource_group \
-                                --account-name $storage_name \
-                                --location $location \
-                                --service-level $pool_service_level \
-                                --usage-threshold $(($volume_size * (2 ** 10))) \
-                                --file-path ${volume_name} \
-                                --pool-name $pool_name \
-                                --volume-name $volume_name \
-                                --vnet $vnet_name \
-                                --subnet $storage_subnet \
-                                --protocol-types NFSv3 \
-                                --output table
-                        fi
-                        volume_ip=$( \
-                            az netappfiles list-mount-targets \
-                                --resource-group $storage_resource_group \
-                                --account-name $storage_name \
-                                --pool-name $pool_name \
-                                --volume-name $volume_name \
-                                --query [0].ipAddress \
-                                --output tsv \
-                        )
-                        read_value mount_point ".storage.\"$storage_name\".pools.\"$pool_name\".volumes.\"$volume_name\".mount"
-                        echo "mkdir -p $mount_point" >> $mount_script
-                        echo "echo \"$volume_ip:/$volume_name	$mount_point	nfs bg,rw,hard,noatime,nolock,rsize=65536,wsize=65536,vers=3,tcp,_netdev 0 0\" >> /etc/fstab" >> $mount_script
-                        echo "chmod 777 $mount_point" >> $mount_script
+                        echo "echo \"$volume_ip:/$file_path	$mount_point	nfs bg,rw,hard,noatime,nolock,rsize=65536,wsize=65536,vers=3,tcp,_netdev 0 0\" >> /etc/fstab" >> $mount_script
                     fi
                 done
+                echo "chmod 777 $mount_point" >> $mount_script
                 echo "mount -a" >> $mount_script
                 chmod 777 $mount_script
             done
