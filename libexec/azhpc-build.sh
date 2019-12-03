@@ -493,8 +493,8 @@ for storage_name in $(jq -r ".storage | keys | @tsv" $config_file 2>/dev/null); 
                 done
                 echo "chmod 777 $mount_point" >> $mount_script
                 echo "mount -a" >> $mount_script
-                chmod 777 $mount_script
             done
+            chmod 777 $mount_script
         ;;
         *)
             error "unknown resource type ($storage_type) for $storage_name"
